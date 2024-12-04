@@ -4,11 +4,17 @@ using namespace std;
 
 int Compute(int idx, string& s, int n){
 	if (s.substr(idx, 4) != "mul(") return 0;
-	int f = 0;
+	int f = 0, comma = 0;
 	string temp1 = "", temp2 = "";
 	for(int i = idx + 4; i < n; i++){
 		if(s[i] == ','){
-			f = 1;
+			if(comma){
+				return 0;
+			} else{
+				f = 1;
+				comma += 1;
+			}
+			
 		} else if(s[i] == ')'){
 			break;
 		} else{
