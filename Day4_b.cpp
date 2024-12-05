@@ -1,25 +1,59 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <sstream>
+#include <map>
+#include <set>
 using namespace std;
 
+vector<int> Order(vector<int>& Seq, map<int, set<int>>& adj) {
+    set<int> con; 
+    for (auto x : Seq) con.insert(x);
 
-void filldp(int I, int J, vector<vector<char>>& matrix, vector<vector<int>> &dp){	
-	// Up
-	int i = I, j = J, k = 0, n = matrix.size(), m = matrix[0].size();
-	if((matrix[i+1][j+1] == 'M' && matrix[i-1][j-1] == 'S') || 
-	(matrix[i+1][j+1] == 'S' && matrix[i-1][j-1] == 'M')){
-		k++;
-	}
+    vector<int> result;
+    set<int> Visited;
+    map<int, bool> tempVisit;
 
-	if((matrix[i+1][j-1] == 'M' && matrix[i-1][j+1] == 'S') || 
-	(matrix[i+1][j-1] == 'S' && matrix[i-1][j+1] == 'M')){
-		k++;
-	}
-	
-	dp[I][J] = k / 2;
-	return;
+    function<void(int)> dfs = [&](int node) {
+        if (Visited.count(node)) return;
+        if (tempVisit[node]) return; 
+        
+        tempVisit[node] = true;
+        for (auto dep : adj[node]) {
+            if (con.count(dep)) {
+                dfs(dep);
+            }
+        }
+        tempVisit[node] = false;
+        Visited.insert(node);
+        result.push_back(node);
+    };
+    for (auto node : Seq) {
+        if (!Visited.count(node)) {
+            dfs(node);
+        }
+    }
+    return result;
 }
+
+
+
+int Valid(vector<int>& Seq, map<int, set<int>>& adj){
+	int n = Seq.size();
+	set<int> con, Visited;
+	for(auto x : Seq) con.insert(x);
+	for(int i = 0; i < n; i++){
+		for(auto x : adj[Seq[i]]){
+			if(con.count(x) != 0){
+				if(Visited.count(x) == 0) return false;
+			}
+		}
+		Visited.insert(Seq[i]);
+	}
+	return true;
+}
+
 
 int main() {
     	FILE* fd = fopen("input", "r");
@@ -38,31 +72,44 @@ int main() {
 			temp += s[i];
 		}
 	}
-
-	int n = vec.size(), m = vec[0].length();
-	vector<vector<char>> matrix(n, vector<char>(m));
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < m; j++){
-			matrix[i][j] = vec[i][j];
+	vector<vector<int>> order;
+	int i;
+	for(i = 0; i < vec.size(); i++){
+		auto x = vec[i];
+		if(x == ""){
+			i++;
+			break;
+		} else{
+			const char c = '|';
+			int idx = find(begin(x), end(x), c) - begin(x);
+			order.push_back({stoi(x.substr(0, idx)), stoi(x.substr(idx + 1))});
 		}
 	}
 
-	vector<vector<int>> dp(n, vector<int>(m, 0));
+	vector<vector<int>> seq;
+	for(i; i < vec.size(); i++){
+		stringstream ss;
+		ss << vec[i];
+		string x;
+		vector<int> temp;
+		char delimiter = ',';
+		while (getline(ss, x, delimiter)) {
+        		temp.push_back(stoi(x)); // Add each split part to the vector
+    		}
+		seq.push_back(temp);
+	}
 
-	for(int i = 1; i < n-1; i++){
-		for(int j = 1; j < m-1; j++){
-			if(matrix[i][j] == 'A'){
-				filldp(i, j, matrix, dp);
-			}
-		}
+	map<int, set<int>> adj;
+	for(auto v : order){
+		adj[v[1]].insert(v[0]);
 	}
 
 	int res = 0;
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < m; j++){
-			if(matrix[i][j] == 'A'){
-				res += dp[i][j];
-			}
+	for(auto S : seq){
+		if(!Valid(S, adj)){
+			auto _S = Order(S, adj);
+			int mid = _S.size() / 2;
+			res += _S[mid];
 		}
 	}
 	cout << res << endl;

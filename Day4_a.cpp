@@ -1,67 +1,27 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <sstream>
+#include <map>
+#include <set>
 using namespace std;
 
-
-void filldp(int I, int J, vector<vector<char>>& matrix, vector<vector<int>> &dp){	
-	// Up
-	int i = I, j = J, k = 0, n = matrix.size(), m = matrix[0].size();
-	string XMAS = "XMAS";
-	while(i >= 0 && k < 4 && matrix[i][j] == XMAS[k]){
-		i--, k++;
+int Valid(vector<int>& Seq, map<int, set<int>>& adj){
+	int n = Seq.size();
+	set<int> con, Visited;
+	for(auto x : Seq) con.insert(x);
+	for(int i = 0; i < n; i++){
+		for(auto x : adj[Seq[i]]){
+			if(con.count(x) != 0){
+				if(Visited.count(x) == 0) return false;
+			}
+		}
+		Visited.insert(Seq[i]);
 	}
-	dp[I][J] += (k == 4);
-	
-	// Down
-	i = I, j = J, k = 0;
-	while(i < n && k < 4 && matrix[i][j] == XMAS[k]){
-		i++, k++;
-	}
-	dp[I][J] += (k == 4);
-	
-	// Left	
-	i = I, j = J, k = 0;
-	while(j >= 0 && k < 4 && matrix[i][j] == XMAS[k]){
-		j--, k++;
-	}
-	dp[I][J] += (k == 4);
-	
-	// Right
-	i = I, j = J, k = 0;
-	while(j < m && k < 4 && matrix[i][j] == XMAS[k]){
-		j++, k++;
-	}
-	dp[I][J] += (k == 4);
-	
-	// NE
-	i = I, j = J, k = 0;
-	while(j < m && i >= 0 && k < 4 && matrix[i][j] == XMAS[k]){
-		i--, j++, k++;
-	}
-	dp[I][J] += (k == 4);
-	
-	// SE	
-	i = I, j = J, k = 0;
-	while(j < m && i < n && k < 4 && matrix[i][j] == XMAS[k]){
-		i++, j++, k++;
-	}
-	dp[I][J] += (k == 4);
-	
-	// SW	
-	i = I, j = J, k = 0;
-	while(j >= 0 && i < n && k < 4 && matrix[i][j] == XMAS[k]){
-		i++, j--, k++;
-	}
-	dp[I][J] += (k == 4);
-	// NW
-	i = I, j = J, k = 0;
-	while(j >= 0 && i >= 0 && k < 4 && matrix[i][j] == XMAS[k]){
-		i--, j--, k++;
-	}
-	dp[I][J] += (k == 4);
-	return;
+	return true;
 }
+
 
 int main() {
     	FILE* fd = fopen("input", "r");
@@ -80,31 +40,43 @@ int main() {
 			temp += s[i];
 		}
 	}
-
-	int n = vec.size(), m = vec[0].length();
-	vector<vector<char>> matrix(n, vector<char>(m));
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < m; j++){
-			matrix[i][j] = vec[i][j];
+	vector<vector<int>> order;
+	int i;
+	for(i = 0; i < vec.size(); i++){
+		auto x = vec[i];
+		if(x == ""){
+			i++;
+			break;
+		} else{
+			const char c = '|';
+			int idx = find(begin(x), end(x), c) - begin(x);
+			order.push_back({stoi(x.substr(0, idx)), stoi(x.substr(idx + 1))});
 		}
 	}
 
-	vector<vector<int>> dp(n, vector<int>(m, 0));
+	vector<vector<int>> seq;
+	for(i; i < vec.size(); i++){
+		stringstream ss;
+		ss << vec[i];
+		string x;
+		vector<int> temp;
+		char delimiter = ',';
+		while (getline(ss, x, delimiter)) {
+        		temp.push_back(stoi(x)); // Add each split part to the vector
+    		}
+		seq.push_back(temp);
+	}
 
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < m; j++){
-			if(matrix[i][j] == 'X'){
-				filldp(i, j, matrix, dp);
-			}
-		}
+	map<int, set<int>> adj;
+	for(auto v : order){
+		adj[v[1]].insert(v[0]);
 	}
 
 	int res = 0;
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < m; j++){
-			if(matrix[i][j] == 'X'){
-				res += dp[i][j];
-			}
+	for(auto S : seq){
+		if(Valid(S, adj)){
+			int mid = S.size() / 2;
+			res += S[mid];
 		}
 	}
 	cout << res << endl;
