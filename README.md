@@ -11,3 +11,4 @@
 | ✔ ✔   | Day 06 | Guard Gallivant
 | ✔ ✔   | Day 07 | Bridge Repair
 | ✔ ✔   | Day 08 | Resonant Collinearity
+| ✔ ❌  | Day 09 | Disk Fragmenter
